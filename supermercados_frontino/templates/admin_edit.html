@@ -1,8 +1,11 @@
 {% extends "layout.html" %}
 {% block body %}
-<h4>Editar Supermercado</h4>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4>Editar Supermercado</h4>
+  <a class="btn btn-secondary" href="{{ url_for('admin_panel') }}">Volver a inicio</a>
+</div>
 <div class="card p-3">
-  <form method="post" enctype="multipart/form-data">
+  <form method="post">
     <div class="mb-2"><label class="form-label">Nombre</label><input class="form-control" name="nombre" value="{{ s['nombre'] }}" required></div>
     <div class="mb-2"><label class="form-label">Dirección</label><input class="form-control" name="direccion" value="{{ s['direccion'] }}" required></div>
     <div class="mb-2 row">
@@ -16,8 +19,7 @@
     <div class="mb-2">
       <label class="form-label">Imagen actual</label>
       {% if s['imagen'] %}<img src="{{ url_for('images', filename=s['imagen']) }}" class="img-fluid mb-2" style="max-height:160px;">{% else %}<div class="bg-light p-3">Sin imagen</div>{% endif %}
-      <input type="hidden" name="imagen_actual" value="{{ s['imagen'] }}">
-      <label class="form-label">Cambiar imagen</label><input class="form-control" type="file" name="imagen" accept="image/*">
+      <label class="form-label mt-2">Nombre de imagen (dejar vacío para mantener la actual)</label><input class="form-control" name="imagen" placeholder="Ej: 1.webp, 5.jpg">
     </div>
     <button class="btn btn-primary">Actualizar</button>
   </form>

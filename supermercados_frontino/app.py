@@ -1,13 +1,11 @@
 import os
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
-from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'database.db')
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'images')
-ALLOWED_EXT = {'png','jpg','jpeg','gif','webp'}
 
 app = Flask(__name__)
 app.secret_key = 'frontino_secret_simple'
@@ -19,9 +17,6 @@ def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
-
-def allowed_file(fname):
-    return '.' in fname and fname.rsplit('.',1)[1].lower() in ALLOWED_EXT
 
 # ---- Home: login ----
 @app.route('/')
@@ -121,14 +116,7 @@ def admin_add():
         apertura = request.form['apertura'].strip()
         cierre = request.form['cierre'].strip()
         descripcion = request.form['descripcion'].strip()
-
-        imagen_filename = None
-        f = request.files.get('imagen')
-        if f and f.filename and allowed_file(f.filename):
-            filename = secure_filename(f.filename)
-            filename = f"{int(__import__('time').time())}_{filename}"
-            f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            imagen_filename = filename
+        imagen_filename = request.form.get('imagen', '').strip() or None
 
         db = get_db()
         cur = db.cursor()
@@ -155,13 +143,14 @@ def admin_edit(id):
         cierre = request.form['cierre'].strip()
         descripcion = request.form['descripcion'].strip()
 
-        imagen_filename = request.form.get('imagen_actual')
-        f = request.files.get('imagen')
-        if f and f.filename and allowed_file(f.filename):
-            filename = secure_filename(f.filename)
-            filename = f"{int(__import__('time').time())}_{filename}"
-            f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            imagen_filename = filename
+        imagen_filename = request.form.get('imagen', '').strip()
+        
+        # Si el campo de imagen está vacío, mantener la actual
+        if not imagen_filename:
+            cur.execute("SELECT imagen FROM supermercados WHERE id=?", (id,))
+            r = cur.fetchone()
+            if r:
+                imagen_filename = r['imagen']
 
         cur.execute("""UPDATE supermercados SET
             nombre=?, direccion=?, telefono=?, horario_apertura=?, horario_cierre=?, descripcion=?, imagen=?
